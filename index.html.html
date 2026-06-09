@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy — Club Mariano Moreno</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg-card: #181c25;
+    --bg-hover: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text-muted: #7b8096;
+    --text-dim: #3f4457;
+    --accent: #4f7bff;
+    --accent-glow: rgba(79,123,255,0.18);
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --mono: 'Roboto Mono', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .topbar-brand .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .topbar-right {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    display: block;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .upload-zone svg { margin-bottom: 8px; }
+  .upload-zone .up-title { font-weight: 500; font-size: 13px; margin-bottom: 3px; }
+  .upload-zone .up-sub { font-size: 11px; color: var(--text-muted); }
+  #file-input { display: none; }
+
+  /* FILE STATUS */
+  .file-status {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 12px;
+    align-items: center;
+    gap: 8px;
+  }
+  .file-status.show { display: flex; }
+  .file-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .file-name { color: var(--text); font-family: var(--mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* STATS CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .stat-card .s-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .stat-card .s-val { font-size: 22px; font-weight: 600; font-family: var(--mono); }
+  .stat-card.accent-card { border-color: rgba(79,123,255,0.3); }
+  .stat-card.accent-card .s-val { color: var(--accent); }
+
+  /* SIDEBAR NAV */
+  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-nav button {
+    background: none; border: none; cursor: pointer;
+    text-align: left; padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.1s, color 0.1s;
+  }
+  .sidebar-nav button:hover { background: var(--bg-hover); color: var(--text); }
+  .sidebar-nav button.active { background: var(--bg-hover); color: var(--text); font-weight: 500; }
+  .sidebar-nav button svg { flex-shrink: 0; }
+
+  /* FILTERS */
+  .filters { display: flex; flex-direction: column; gap: 8px; }
+  .filter-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .filter-input, .filter-select {
+    width: 100%; padding: 7px 10px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 12px; font-family: var(--sans);
+  }
+  .filter-input::placeholder { color: var(--text-dim); }
+  .filter-input:focus, .filter-select:focus { outline: none; border-color: var(--accent); }
+  .filter-select option { background: #1e2330; }
+
+  /* MAIN */
+  .main { padding: 2rem; overflow: auto; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 60vh; gap: 12px;
+    color: var(--text-muted);
+  }
+  .empty-state svg { opacity: 0.3; }
+  .empty-state p { font-size: 13px; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-size: 18px; font-weight: 600; margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .page-title .btn-export {
+    font-size: 12px; font-weight: 500; padding: 6px 14px;
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); color: var(--text); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: background 0.1s;
+  }
+  .btn-export:hover { background: var(--bg-hover); }
+
+  /* WARNINGS */
+  .warnings-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.5rem; }
+  .warn-item {
+    background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.2);
+    border-radius: var(--radius-sm); padding: 9px 12px;
+    font-size: 12px; color: #fde68a;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .warn-item svg { flex-shrink: 0; margin-top: 2px; }
+
+  /* RANKING TABLE */
+  .ranking-table-wrap { overflow-x: auto; }
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th {
+    text-align: left; font-size: 11px; font-weight: 500;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 0 12px 10px; border-bottom: 1px solid var(--border);
+  }
+  .ranking-table th.right { text-align: right; }
+  .ranking-table td {
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: var(--bg-hover); }
+
+  .rank-num { font-family: var(--mono); font-size: 12px; color: var(--text-muted); min-width: 28px; }
+  .player-name { font-weight: 500; font-size: 13px; }
+  .divs-tag { font-size: 11px; font-family: var(--mono); }
+  .div-titular { color: var(--green); }
+  .div-banco { color: var(--amber); }
+  .div-sep { color: var(--text-dim); margin: 0 3px; }
+  .badge {
+    display: inline-block; font-size: 10px; padding: 2px 7px;
+    border-radius: 99px; margin-left: 6px; vertical-align: middle; font-weight: 500;
+  }
+  .badge-multi { background: rgba(79,123,255,0.15); color: #93b4ff; border: 1px solid rgba(79,123,255,0.25); }
+  .badge-zorrito { background: rgba(251,191,36,0.15); color: #fde68a; border: 1px solid rgba(251,191,36,0.25); }
+  .pts-cell {
+    text-align: right; font-family: var(--mono); font-weight: 500; font-size: 14px;
+  }
+  .pts-positive { color: var(--green); }
+  .pts-negative { color: var(--red); }
+  .pts-zero { color: var(--text-muted); }
+  .col-titular { font-size: 11px; font-family: var(--mono); color: var(--green); }
+  .col-banco { font-size: 11px; font-family: var(--mono); color: var(--amber); }
+  .col-empty { font-size: 11px; color: var(--text-dim); }
+
+  /* MODAL AGREGAR JUGADOR */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    border-radius: var(--radius); padding: 1.5rem; width: 380px; max-width: 90vw;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 1.25rem; }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 5px; }
+  .modal-field input, .modal-field select {
+    width: 100%; padding: 8px 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 13px; font-family: var(--sans);
+  }
+  .modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--accent); }
+  .modal-field select option { background: #1e2330; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+  .btn-modal-cancel {
+    padding: 7px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong);
+    background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer;
+  }
+  .btn-modal-cancel:hover { background: var(--bg-hover); color: var(--text); }
+  .btn-modal-ok {
+    padding: 7px 16px; border-radius: var(--radius-sm); border: none;
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  .btn-modal-ok:hover { opacity: 0.85; }
+  .btn-add-player {
+    font-size: 12px; font-weight: 500; padding: 6px 14px;
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); color: var(--text); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: background 0.1s;
+  }
+  .btn-add-player:hover { background: var(--bg-hover); }
+
+  /* EDIT PANEL */
+  .edit-row td {
+    background: rgba(79,123,255,0.04);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+  .edit-panel-header {
+    font-size: 11px; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 10px;
+  }
+  .edit-items { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .edit-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 5px 10px;
+  }
+  .edit-item .ei-label { font-size: 12px; color: var(--text-muted); flex: 1; }
+  .edit-item .ei-qty {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text);
+    font-size: 12px; font-family: var(--mono);
+    padding: 3px 6px; cursor: pointer;
+  }
+  .edit-item .ei-qty:focus { outline: none; border-color: var(--accent); }
+  .edit-item .ei-qty option { background: #1e2330; }
+  .edit-item .ei-pts { font-size: 12px; font-family: var(--mono); font-weight: 500; min-width: 40px; text-align: right; }
+  .ei-pts.pos { color: var(--green); }
+  .ei-pts.neg { color: var(--red); }
+  .edit-item .ei-del {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-size: 13px; padding: 2px 4px;
+    border-radius: 4px; line-height: 1; transition: color 0.1s, background 0.1s;
+  }
+  .edit-item .ei-del:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+  .edit-add-row {
+    display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap;
+  }
+  .edit-add-row select {
+    font-size: 12px; padding: 5px 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+  }
+  .edit-add-row .edit-add-select { flex: 2; min-width: 140px; }
+  .edit-add-row .edit-div-select { flex: 1; min-width: 90px; display: none; }
+  .edit-add-row .edit-div-select.show { display: block; }
+  .edit-add-row select:focus { outline: none; border-color: var(--accent); }
+  .edit-add-row select option { background: #1e2330; }
+  .btn-add-item {
+    padding: 5px 12px; font-size: 12px; font-weight: 500;
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); color: var(--text); cursor: pointer;
+    transition: background 0.1s; white-space: nowrap;
+  }
+  .btn-add-item:hover { background: var(--bg-hover); }
+  .edit-total {
+    display: flex; justify-content: flex-end; align-items: center;
+    gap: 8px; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .edit-total .et-label { color: var(--text-muted); }
+  .edit-total .et-val { font-family: var(--mono); font-weight: 600; font-size: 16px; }
+
+  /* DUPLICADOS TABLE */
+  .dup-table { width: 100%; border-collapse: collapse; }
+  .dup-table th { text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 12px 10px; border-bottom: 1px solid var(--border); }
+  .dup-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .dup-table tr:last-child td { border-bottom: none; }
+  .dup-table tr:hover td { background: var(--bg-hover); }
+
+  .tag {
+    display: inline-block; font-size: 10px; padding: 2px 8px;
+    border-radius: 99px; font-weight: 500; font-family: var(--mono);
+    margin: 1px;
+  }
+  .tag-titular { background: rgba(52,211,153,0.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.2); }
+  .tag-banco { background: rgba(251,191,36,0.1); color: #fde68a; border: 1px solid rgba(251,191,36,0.2); }
+  .tag-div { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* REGLAMENTO */
+  .reglamento-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;
+  }
+  .reg-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .reg-cat { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 10px; }
+  .reg-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 12px; }
+  .reg-row + .reg-row { border-top: 1px solid var(--border); }
+  .reg-pts { font-family: var(--mono); font-weight: 500; }
+  .reg-pts.pos { color: var(--green); }
+  .reg-pts.neg { color: var(--red); }
+
+  .clickable { cursor: pointer; }
+
+  /* ELIMINAR JUGADOR */
+  .btn-eliminar {
+    opacity: 0; background: none; border: none; cursor: pointer;
+    color: var(--text-muted); padding: 3px 6px; border-radius: var(--radius-sm);
+    font-size: 14px; line-height: 1; transition: opacity 0.1s, color 0.1s, background 0.1s;
+  }
+  tr:hover .btn-eliminar { opacity: 1; }
+  .btn-eliminar:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+
+  /* ZORRITOS PAGE */
+  .zorrito-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .zorrito-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    transition: border-color 0.15s;
+  }
+  .zorrito-card.assigned { border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.04); }
+  .zorrito-card .zc-div {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .zorrito-card .zc-div .zc-star { font-size: 14px; opacity: 0; transition: opacity 0.15s; }
+  .zorrito-card.assigned .zc-star { opacity: 1; }
+  .zorrito-card .zc-assigned {
+    font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px; min-height: 20px;
+  }
+  .zorrito-card .zc-assigned.empty { color: var(--text-dim); font-style: italic; font-size: 12px; }
+  .zorrito-search-wrap { position: relative; }
+  .zorrito-search {
+    width: 100%; padding: 6px 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 12px; font-family: var(--sans);
+  }
+  .zorrito-search::placeholder { color: var(--text-dim); }
+  .zorrito-search:focus { outline: none; border-color: var(--accent); }
+  .zorrito-dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: #1e2330; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); z-index: 50;
+    max-height: 180px; overflow-y: auto; display: none;
+  }
+  .zorrito-dropdown.open { display: block; }
+  .zorrito-option {
+    padding: 7px 10px; font-size: 12px; cursor: pointer; color: var(--text);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .zorrito-option:hover { background: var(--bg-hover); }
+  .zorrito-option .zo-pts { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .zorrito-clear {
+    margin-top: 6px; font-size: 11px; color: var(--text-muted); cursor: pointer;
+    background: none; border: none; padding: 0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .zorrito-clear:hover { color: var(--red); }
+  .zorrito-save-bar {
+    margin-top: 1.5rem; padding: 12px 16px;
+    background: rgba(79,123,255,0.08); border: 1px solid rgba(79,123,255,0.2);
+    border-radius: var(--radius); display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px;
+  }
+  .zorrito-save-bar .zsb-label { color: var(--text-muted); }
+  .zorrito-save-bar .zsb-label strong { color: var(--text); }
+  .btn-apply {
+    padding: 7px 18px; border-radius: var(--radius-sm);
+    background: var(--accent); border: none; color: #fff;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.1s;
+  }
+  .btn-apply:hover { opacity: 0.85; }
+  .btn-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 1rem; }
+    .main { padding: 1rem; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="dot"></span>
+    Fantasy · Mariano Moreno
+  </div>
+  <div class="topbar-right" id="fecha-label">sin fecha cargada</div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <label for="file-input" class="upload-zone" id="drop-zone">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4f7bff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <p class="up-title">Subir CSV de fecha</p>
+        <p class="up-sub">click o arrastrá acá</p>
+      </label>
+      <input type="file" id="file-input" accept=".csv" style="display:none">
+    </div>
+
+    <div class="file-status" id="file-status">
+      <span class="file-dot"></span>
+      <span class="file-name" id="file-name-label">—</span>
+    </div>
+
+    <div class="stats-grid" id="stats-grid" style="display:none">
+      <div class="stat-card">
+        <div class="s-label">Filas</div>
+        <div class="s-val" id="s-filas">—</div>
+      </div>
+      <div class="stat-card accent-card">
+        <div class="s-label">Jugadores</div>
+        <div class="s-val" id="s-unicos">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Multi-div</div>
+        <div class="s-val" id="s-multi">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Zorritos</div>
+        <div class="s-val" id="s-zorr">—</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <button class="active" onclick="showPage('ranking',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Ranking
+      </button>
+      <button onclick="showPage('duplicados',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Multi-división
+      </button>
+      <button onclick="showPage('agregar',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><line x1="19" y1="11" x2="19" y2="17"/><line x1="16" y1="14" x2="22" y2="14"/></svg>
+        Agregar jugador
+      </button>
+      <button onclick="showPage('zorritos',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Zorritos
+      </button>
+      <button onclick="showPage('reglamento',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Reglamento
+      </button>
+    </nav>
+
+    <div class="filters" id="filter-section" style="display:none">
+      <div class="filter-label">Filtros</div>
+      <input type="text" class="filter-input" id="search-input" placeholder="Buscar jugador..." oninput="renderRanking()">
+      <select class="filter-select" id="div-filter" onchange="renderRanking()">
+        <option value="">Todas las divisiones</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-content">
+    <div class="empty-state" id="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <p>Subí el CSV de la fecha para comenzar</p>
+    </div>
+
+    <!-- RANKING PAGE -->
+    <div id="page-ranking" style="display:none">
+      <div class="page-title">
+        Ranking
+        <button class="btn-export" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+      </div>
+      <div class="warnings-list" id="warnings-list"></div>
+      <div class="ranking-table-wrap">
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th>Jugador</th>
+              <th>Titular</th>
+              <th>Ingresó</th>
+              <th class="right">Puntos</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="ranking-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AGREGAR JUGADOR PAGE -->
+    <div id="page-agregar" style="display:none">
+      <div class="page-title">Agregar jugador</div>
+      <div style="max-width: 420px; display:flex; flex-direction:column; gap:16px;">
+
+        <div class="modal-field">
+          <label>Nombre del jugador</label>
+          <input type="text" id="nuevo-nombre" placeholder="Ej: Juan Pérez" style="width:100%">
+        </div>
+
+        <div class="modal-field">
+          <label>División</label>
+          <select id="nuevo-division" style="width:100%"></select>
+        </div>
+
+        <div class="modal-field">
+          <label>Participación</label>
+          <select id="nuevo-participacion" style="width:100%">
+            <option value="titular">Titular (+3 pts)</option>
+            <option value="banco">Ingresó desde el banco (+1 pt)</option>
+          </select>
+        </div>
+
+        <div class="modal-field">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; text-transform:none; font-size:12px; letter-spacing:0">
+            <input type="checkbox" id="nuevo-segunda-check" onchange="toggleSegundaDiv()" style="width:auto">
+            También jugó en otra división
+          </label>
+        </div>
+
+        <div id="segunda-div-row" style="display:none; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="modal-field">
+            <label>Segunda división</label>
+            <select id="nuevo-division-2" style="width:100%"></select>
+          </div>
+          <div class="modal-field">
+            <label>Participación</label>
+            <select id="nuevo-participacion-2" style="width:100%">
+              <option value="titular">Titular (+3 pts)</option>
+              <option value="banco">Ingresó desde el banco (+1 pt)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-field">
+          <label>Resultado del equipo</label>
+          <select id="nuevo-resultado" style="width:100%">
+            <option value="">Sin resultado</option>
+            <option value="Victoria del Equipo">Victoria (+2)</option>
+            <option value="Victoria con Bonus Try">Victoria con bonus try (+4)</option>
+            <option value="Empate del Equipo">Empate (+1)</option>
+            <option value="Derrota del Equipo">Derrota (-2)</option>
+            <option value="Derrota con bonus a favor">Derrota con bonus a favor (-1)</option>
+            <option value="Derrota con bonus try en contra">Derrota con bonus try en contra (-3)</option>
+          </select>
+        </div>
+
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; padding-top:4px; border-top: 1px solid var(--border);">Acciones de cancha</div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="modal-field">
+            <label>Tries (+5 c/u)</label>
+            <select id="nuevo-try" style="width:100%">
+              <option value="0">0</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Conversiones (+2 c/u)</label>
+            <select id="nuevo-conversion" style="width:100%">
+              <option value="0">0</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Penales (+3 c/u)</label>
+            <select id="nuevo-penal" style="width:100%">
+              <option value="0">0</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Drops (+3 c/u)</label>
+            <select id="nuevo-drop" style="width:100%">
+              <option value="0">0</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Try penal (+1)</label>
+            <select id="nuevo-trypenal" style="width:100%">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Zorrito del partido (+10)</label>
+            <select id="nuevo-zorrito" style="width:100%">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Amarilla (-5)</label>
+            <select id="nuevo-amarilla" style="width:100%">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Roja (-20)</label>
+            <select id="nuevo-roja" style="width:100%">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="agregar-error" style="display:none; font-size:12px; color:var(--red); padding: 8px 12px; background: rgba(248,113,113,0.08); border-radius:var(--radius-sm); border: 1px solid rgba(248,113,113,0.2);"></div>
+
+        <button class="btn-modal-ok" style="align-self:flex-start; padding: 9px 24px; font-size:14px;" onclick="confirmarAgregarJugador()">
+          Agregar al ranking
+        </button>
+
+      </div>
+    </div>
+
+    <!-- DUPLICADOS PAGE -->
+    <div id="page-duplicados" style="display:none">
+      <div class="page-title">Multi-división</div>
+      <table class="dup-table">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Divisiones</th>
+            <th>Titular en</th>
+            <th>Banco en</th>
+            <th class="right">Puntos totales</th>
+          </tr>
+        </thead>
+        <tbody id="dup-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ZORRITOS PAGE -->
+    <div id="page-zorritos" style="display:none">
+      <div class="page-title">
+        Zorritos del partido
+        <button class="btn-apply" id="btn-apply-zorritos" onclick="applyZorritos()" disabled>Aplicar al ranking</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:1.5rem">
+        Elegí un titular por división. Se suman los +10 pts y se recalcula el ranking.
+      </p>
+      <div class="zorrito-grid" id="zorrito-grid"></div>
+      <div class="zorrito-save-bar" id="zorrito-bar" style="display:none">
+        <span class="zsb-label">Zorritos asignados: <strong id="zorrito-count">0</strong></span>
+        <button class="btn-apply" onclick="applyZorritos()">Aplicar al ranking</button>
+      </div>
+    </div>
+
+    <!-- REGLAMENTO PAGE -->
+    <div id="page-reglamento" style="display:none">
+      <div class="page-title">Reglamento de puntos</div>
+      <div class="reglamento-grid">
+        <div class="reg-card">
+          <div class="reg-cat">Acciones de cancha</div>
+          <div class="reg-row"><span>Try</span><span class="reg-pts pos">+5</span></div>
+          <div class="reg-row"><span>Conversión</span><span class="reg-pts pos">+2</span></div>
+          <div class="reg-row"><span>Penal</span><span class="reg-pts pos">+3</span></div>
+          <div class="reg-row"><span>Drop</span><span class="reg-pts pos">+3</span></div>
+          <div class="reg-row"><span>Try Penal</span><span class="reg-pts pos">+1</span></div>
+          <div class="reg-row"><span>Zorrito del Partido</span><span class="reg-pts pos">+10</span></div>
+        </div>
+        <div class="reg-card">
+          <div class="reg-cat">Participación</div>
+          <div class="reg-row"><span>Titular</span><span class="reg-pts pos">+3</span></div>
+          <div class="reg-row"><span>Desde el banco</span><span class="reg-pts pos">+1</span></div>
+        </div>
+        <div class="reg-card">
+          <div class="reg-cat">Resultado del equipo</div>
+          <div class="reg-row"><span>Victoria</span><span class="reg-pts pos">+2</span></div>
+          <div class="reg-row"><span>Victoria con bonus try</span><span class="reg-pts pos">+4</span></div>
+          <div class="reg-row"><span>Empate</span><span class="reg-pts pos">+1</span></div>
+          <div class="reg-row"><span>Derrota</span><span class="reg-pts neg">-2</span></div>
+          <div class="reg-row"><span>Derrota con bonus a favor</span><span class="reg-pts neg">-1</span></div>
+          <div class="reg-row"><span>Derrota con bonus try en contra</span><span class="reg-pts neg">-3</span></div>
+        </div>
+        <div class="reg-card">
+          <div class="reg-cat">Disciplina</div>
+          <div class="reg-row"><span>Tarjeta amarilla</span><span class="reg-pts neg">-5</span></div>
+          <div class="reg-row"><span>Tarjeta roja</span><span class="reg-pts neg">-20</span></div>
+        </div>
+        <div class="reg-card" style="grid-column: 1/-1; background:none; border-color: transparent; padding: 0;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;">
+            <div class="reg-cat" style="margin-bottom:6px">Regla multi-división</div>
+            <p style="font-size:12px; color: var(--text-muted); line-height:1.7">
+              Un jugador que participó en más de una división acumula <strong style="color:var(--text)">acciones de cancha</strong> en todas las divisiones donde jugó. El <strong style="color:var(--text)">resultado del equipo</strong> solo cuenta en la división donde fue <strong style="color:var(--text)">titular</strong>. La <strong style="color:var(--text)">participación</strong> (+3 o +1) se cuenta por cada división. El multiplicador de <strong style="color:var(--text)">Capitán</strong> se aplica manualmente en la app.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const PUNTOS = {
+  "Try": 5, "Conversión": 2, "Penal": 3, "Drop": 3, "Try Penal": 1,
+  "Amarilla": -5, "Roja": -20, "Zorrito del Partido": 10,
+  "Titular": 3, "Ingresó desde el banco": 1,
+  "Victoria del Equipo": 2, "Victoria con Bonus Try": 4,
+  "Empate del Equipo": 1, "Derrota del Equipo": -2,
+  "Derrota con bonus a favor": -1, "Derrota con bonus try en contra": -3,
+};
+const ACCIONES = ["Try","Conversión","Penal","Drop","Try Penal","Amarilla","Roja","Zorrito del Partido","Titular","Ingresó desde el banco"];
+const RESULTADO = ["Victoria del Equipo","Victoria con Bonus Try","Empate del Equipo","Derrota del Equipo","Derrota con bonus a favor","Derrota con bonus try en contra"];
+const DIV_ORDER = ["PRE C","PRE B","PRE A","INTER","PRIMERA"];
+
+let allResults = [], allWarnings = [], currentPage = 'ranking';
+let divisionesDelCSV = [];
+let zorritos = {}; // { 'PRE A': 'Nombre Jugador', ... }
+let rawRows = [];
+
+function parseBool(v) {
+  if (!v && v !== 0) return 0;
+  const s = String(v).trim();
+  return (s === '1' || s.toLowerCase() === 'true' || s.toLowerCase() === 'si' || s.toLowerCase() === 'sí') ? 1 : 0;
+}
+
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  const rawHeader = lines[0].replace(/^\uFEFF/, '');
+  const headers = rawHeader.split(',').map(h => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(',');
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+    if (row['JUGADOR']) rows.push(row);
+  }
+  return rows;
+}
+
+function calcular(rows) {
+  const byJugador = {};
+  rows.forEach(r => {
+    const nombre = r['JUGADOR'];
+    if (!nombre) return;
+    if (!byJugador[nombre]) byJugador[nombre] = [];
+    byJugador[nombre].push(r);
+  });
+
+  const results = [], warnings = [];
+
+  Object.entries(byJugador).forEach(([jugador, filas]) => {
+    let pts = 0;
+    const divisiones = filas.map(f => f['DIVISION']);
+    const breakdown = {};
+
+    ACCIONES.forEach(col => {
+      let sum = 0;
+      filas.forEach(fila => {
+        const v = fila[col];
+        if (v === undefined || v === null || v === '') return;
+        // Acciones numéricas (Try, Conversión, Penal, Drop) pueden valer >1
+        const n = parseInt(v);
+        sum += isNaN(n) ? 0 : n;
+      });
+      if (sum !== 0) {
+        const p = sum * PUNTOS[col];
+        breakdown[col] = { sum, pts: p };
+        pts += p;
+      }
+    });
+
+    const filaTitular = filas.filter(f => parseBool(f['Titular']) === 1);
+    const filaBanco = filas.filter(f => parseBool(f['Ingresó desde el banco']) === 1);
+
+    const filasResultado = filaTitular.length > 0 ? filaTitular : [];
+    if (filaTitular.length > 1) warnings.push({ tipo: 'titular-doble', jugador, divisiones });
+    filasResultado.forEach(ft => {
+      RESULTADO.forEach(col => {
+        const v = parseBool(ft[col]);
+        if (v) {
+          const p = v * PUNTOS[col];
+          breakdown[col] = (breakdown[col] || { sum: 0, pts: 0 });
+          breakdown[col].sum += v; breakdown[col].pts += p;
+          pts += p;
+        }
+      });
+    });
+
+    if (filas.length > 1) {
+      const idxTit = filaTitular.length ? DIV_ORDER.indexOf(filaTitular[0]['DIVISION']) : -1;
+      filaBanco.forEach(fb => {
+        const idxB = DIV_ORDER.indexOf(fb['DIVISION']);
+        if (idxTit !== -1 && idxB !== -1 && idxB < idxTit) {
+          warnings.push({ tipo: 'cronologico', jugador, divTitular: filaTitular[0]['DIVISION'], divBanco: fb['DIVISION'] });
+        }
+      });
+    }
+
+    results.push({
+      jugador, divisiones,
+      divisionesActivas: [...divisiones],
+      // mapa exacto de qué rol tuvo en cada división: { 'INTER': 'titular', 'PRE A': 'banco', 'PRE B': 'banco' }
+      participacionPorDiv: Object.fromEntries(filas.map(f => [
+        f['DIVISION'],
+        parseBool(f['Titular']) === 1 ? 'titular' : parseBool(f['Ingresó desde el banco']) === 1 ? 'banco' : null
+      ]).filter(([,v]) => v !== null)),
+      titularDivision: filaTitular.length ? filaTitular[0]['DIVISION'] : null,
+      bancoDivisiones: filaBanco.map(f => f['DIVISION']),
+      duplicado: filas.length > 1,
+      titular: filaTitular.map(f => f['DIVISION']),
+      banco: filaBanco.map(f => f['DIVISION']),
+      pts, breakdown,
+      zorrito: filas.some(f => parseBool(f['Zorrito del Partido']) === 1),
+    });
+  });
+
+  results.sort((a, b) => b.pts - a.pts);
+  return { results, warnings };
+}
+
+function eliminarJugador(jugador) {
+  allResults = allResults.filter(r => r.jugador !== jugador);
+  document.getElementById('s-unicos').textContent = allResults.length;
+  document.getElementById('s-multi').textContent = allResults.filter(r => r.duplicado).length;
+  document.getElementById('s-zorr').textContent = allResults.filter(r => r.zorrito).length;
+  renderRanking();
+  renderDuplicados();
+  renderZorritoGrid();
+}
+
+function renderRanking() {
+  const search = (document.getElementById('search-input').value || '').toLowerCase();
+  const divFilter = document.getElementById('div-filter').value;
+  const tbody = document.getElementById('ranking-body');
+  tbody.innerHTML = '';
+  let rank = 1;
+
+  allResults.forEach(r => {
+    if (search && !r.jugador.toLowerCase().includes(search)) return;
+    if (divFilter && !r.divisionesActivas.includes(divFilter)) return;
+
+    const ptsClass = r.pts > 0 ? 'pts-positive' : r.pts < 0 ? 'pts-negative' : 'pts-zero';
+    const ptsStr = r.pts > 0 ? `+${r.pts}` : `${r.pts}`;
+    const badges = (r.zorrito ? `<span class="badge badge-zorrito">zorrito ⭐</span>` : '') +
+                   (r.duplicado ? `<span class="badge badge-multi">multi</span>` : '');
+
+    // Columna Titular: divisiones donde es titular
+    const divsTitular = r.divisionesActivas.filter(d => r.participacionPorDiv[d] === 'titular');
+    const divsBanco   = r.divisionesActivas.filter(d => r.participacionPorDiv[d] === 'banco');
+
+    const titularCell = divsTitular.length
+      ? `<span class="col-titular">${divsTitular.join(' · ')}</span>`
+      : `<span class="col-empty">—</span>`;
+    const bancoCell = divsBanco.length
+      ? `<span class="col-banco">${divsBanco.join(' · ')}</span>`
+      : `<span class="col-empty">—</span>`;
+
+    const tr = document.createElement('tr');
+    tr.className = 'clickable';
+    tr.dataset.jugador = r.jugador;
+    tr.innerHTML = `
+      <td class="rank-num">${rank++}</td>
+      <td class="player-name">${r.jugador}${badges}</td>
+      <td>${titularCell}</td>
+      <td>${bancoCell}</td>
+      <td class="pts-cell ${ptsClass}">${ptsStr}</td>
+      <td style="width:32px;padding:4px">
+        <button class="btn-eliminar" title="Eliminar jugador" onclick="event.stopPropagation(); eliminarJugador('${r.jugador.replace(/'/g,"\\'")}')">✕</button>
+      </td>
+    `;
+    tr.addEventListener('click', () => toggleBreakdown(tr, r));
+    tbody.appendChild(tr);
+  });
+}
+
+function qtyOptionsFor(col, currentVal) {
+  const binarios = ['Titular','Ingresó desde el banco','Zorrito del Partido',
+    'Victoria del Equipo','Victoria con Bonus Try','Empate del Equipo',
+    'Derrota del Equipo','Derrota con bonus a favor','Derrota con bonus try en contra',
+    'Try Penal','Amarilla','Roja'];
+  const max = binarios.includes(col) ? 1 : 10;
+  let opts = '';
+  for (let i = 1; i <= max; i++) {
+    opts += `<option value="${i}" ${i === currentVal ? 'selected' : ''}>${i}</option>`;
+  }
+  return opts;
+}
+
+function buildEditItem(col, d, jugadorKey) {
+  const pts = d.sum * PUNTOS[col];
+  const ptsClass = pts >= 0 ? 'pos' : 'neg';
+  const ptsStr = pts >= 0 ? `+${pts}` : `${pts}`;
+  const colKey = col.replace(/'/g,"\\'");
+  return `
+    <div class="edit-item">
+      <span class="ei-label">${col}</span>
+      <select class="ei-qty" onchange="editItemQty('${jugadorKey}','${colKey}',this.value)">
+        ${qtyOptionsFor(col, d.sum)}
+      </select>
+      <span class="ei-pts ${ptsClass}">${ptsStr}</span>
+      <button class="ei-del" title="Quitar" onclick="editItemDel('${jugadorKey}','${colKey}')">✕</button>
+    </div>`;
+}
+
+function recalcPts(r) {
+  let pts = 0;
+  Object.entries(r.breakdown).forEach(([col, d]) => {
+    d.pts = d.sum * PUNTOS[col];
+    pts += d.pts;
+  });
+  r.pts = pts;
+  r.zorrito = !!(r.breakdown['Zorrito del Partido'] && r.breakdown['Zorrito del Partido'].sum > 0);
+
+  // Recalcular divisionesActivas usando el mapa original participacionPorDiv
+  const sumTitular = r.breakdown['Titular'] ? r.breakdown['Titular'].sum : 0;
+  const sumBanco   = r.breakdown['Ingresó desde el banco'] ? r.breakdown['Ingresó desde el banco'].sum : 0;
+
+  // Sacar las divisiones ordenadas por tipo desde el mapa original
+  const divsTitular = Object.entries(r.participacionPorDiv)
+    .filter(([,v]) => v === 'titular')
+    .map(([d]) => d)
+    .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b))
+    .slice(0, sumTitular);
+
+  const divsBanco = Object.entries(r.participacionPorDiv)
+    .filter(([,v]) => v === 'banco')
+    .map(([d]) => d)
+    .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b))
+    .slice(0, sumBanco);
+
+  const divsActivas = [...new Set([...divsTitular, ...divsBanco])]
+    .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b));
+
+  r.divisionesActivas = divsActivas.length > 0 ? divsActivas : [];
+}
+
+function refreshEditPanel(jugador) {
+  const r = allResults.find(x => x.jugador === jugador);
+  if (!r) return;
+  const panel = document.getElementById('editpanel-' + jugador.replace(/[^a-z0-9]/gi,'_'));
+  if (!panel) return;
+
+  const allCols = [...ACCIONES, ...RESULTADO];
+  const jugadorKey = jugador.replace(/'/g,"\\'");
+  const items = Object.entries(r.breakdown)
+    .map(([col, d]) => buildEditItem(col, d, jugadorKey)).join('');
+
+  const existingCols = Object.keys(r.breakdown);
+  const availableCols = allCols.filter(c => !existingCols.includes(c));
+  const addOptions = availableCols.map(c => `<option value="${c}">${c} (${PUNTOS[c] >= 0 ? '+' : ''}${PUNTOS[c]})</option>`).join('');
+
+  const ptsClass = r.pts >= 0 ? 'pos' : 'neg';
+  const ptsStr = r.pts >= 0 ? `+${r.pts}` : `${r.pts}`;
+
+  panel.querySelector('.edit-items').innerHTML = items || '<span style="color:var(--text-muted);font-size:12px;padding:4px 0;display:block">sin ítems</span>';
+  panel.querySelector('.edit-add-select').innerHTML = addOptions;
+  panel.querySelector('.edit-add-select').onchange = () => onAddSelectChange(jugador);
+  panel.querySelector('.edit-div-select').classList.remove('show');
+  panel.querySelector('.et-val').className = `et-val ${ptsClass}`;
+  panel.querySelector('.et-val').textContent = ptsStr;
+
+  // Actualizar fila del ranking
+  const tr = document.querySelector(`tr[data-jugador="${jugador}"]`);
+  if (tr) {
+    const ptsTd = tr.querySelector('.pts-cell');
+    ptsTd.className = `pts-cell pts-${r.pts >= 0 ? 'positive' : 'negative'}`;
+    ptsTd.textContent = ptsStr;
+    const tds = tr.querySelectorAll('td');
+    // td[2] = titular, td[3] = banco
+    const divsTitular = r.divisionesActivas.filter(d => r.participacionPorDiv[d] === 'titular');
+    const divsBanco   = r.divisionesActivas.filter(d => r.participacionPorDiv[d] === 'banco');
+    tds[2].innerHTML = divsTitular.length ? `<span class="col-titular">${divsTitular.join(' · ')}</span>` : `<span class="col-empty">—</span>`;
+    tds[3].innerHTML = divsBanco.length   ? `<span class="col-banco">${divsBanco.join(' · ')}</span>`     : `<span class="col-empty">—</span>`;
+  }
+  document.getElementById('s-zorr').textContent = allResults.filter(x => x.zorrito).length;
+}
+
+function editItemQty(jugador, col, val) {
+  const r = allResults.find(x => x.jugador === jugador);
+  if (!r || !r.breakdown[col]) return;
+  const n = Math.max(1, parseInt(val) || 1);
+  r.breakdown[col].sum = n;
+  recalcPts(r);
+  refreshEditPanel(jugador);
+}
+
+function editItemDel(jugador, col) {
+  const r = allResults.find(x => x.jugador === jugador);
+  if (!r) return;
+  delete r.breakdown[col];
+  recalcPts(r);
+  refreshEditPanel(jugador);
+}
+
+function onAddSelectChange(jugador) {
+  const panel = document.getElementById('editpanel-' + jugador.replace(/[^a-z0-9]/gi,'_'));
+  const col = panel.querySelector('.edit-add-select').value;
+  const divSel = panel.querySelector('.edit-div-select');
+  const needsDiv = col === 'Titular' || col === 'Ingresó desde el banco';
+  if (needsDiv) {
+    const r = allResults.find(x => x.jugador === jugador);
+    const tipo = col === 'Titular' ? 'titular' : 'banco';
+    // Todas las divisiones del CSV, excluyendo las que ya tienen ese rol activo
+    const yaActivas = r.divisionesActivas.filter(d => r.participacionPorDiv[d] === tipo);
+    const disponibles = divisionesDelCSV.filter(d => !yaActivas.includes(d));
+    if (disponibles.length > 0) {
+      divSel.innerHTML = disponibles.map(d => `<option value="${d}">${d}</option>`).join('');
+      divSel.classList.add('show');
+    } else {
+      divSel.classList.remove('show');
+    }
+  } else {
+    divSel.classList.remove('show');
+  }
+}
+
+function editItemAdd(jugador) {
+  const r = allResults.find(x => x.jugador === jugador);
+  if (!r) return;
+  const panel = document.getElementById('editpanel-' + jugador.replace(/[^a-z0-9]/gi,'_'));
+  const col = panel.querySelector('.edit-add-select').value;
+  if (!col) return;
+
+  if (col === 'Titular' || col === 'Ingresó desde el banco') {
+    const divSel = panel.querySelector('.edit-div-select');
+    const divElegida = divSel.classList.contains('show') ? divSel.value : null;
+    if (divElegida) {
+      const tipo = col === 'Titular' ? 'titular' : 'banco';
+      // Registrar en el mapa y en divisiones activas
+      r.participacionPorDiv[divElegida] = tipo;
+      if (!r.divisionesActivas.includes(divElegida)) {
+        r.divisionesActivas = [...r.divisionesActivas, divElegida]
+          .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b));
+      }
+      if (tipo === 'titular' && !r.titular.includes(divElegida)) r.titular.push(divElegida);
+      if (tipo === 'banco'   && !r.banco.includes(divElegida))   r.banco.push(divElegida);
+    }
+  }
+
+  if (!r.breakdown[col]) {
+    r.breakdown[col] = { sum: 1, pts: PUNTOS[col] };
+  } else {
+    r.breakdown[col].sum += 1;
+  }
+  recalcPts(r);
+  refreshEditPanel(jugador);
+}
+
+function toggleBreakdown(tr, r) {
+  const existing = tr.nextSibling;
+  if (existing && existing.classList && existing.classList.contains('edit-row')) {
+    existing.remove(); return;
+  }
+  const panelId = 'editpanel-' + r.jugador.replace(/[^a-z0-9]/gi,'_');
+  const allCols = [...ACCIONES, ...RESULTADO];
+  const existingCols = Object.keys(r.breakdown);
+  const availableCols = allCols.filter(c => !existingCols.includes(c));
+  const jugadorKey = r.jugador.replace(/'/g,"\\'");
+
+  const items = Object.entries(r.breakdown)
+    .map(([col, d]) => buildEditItem(col, d, jugadorKey)).join('');
+
+  const addOptions = availableCols.map(c => `<option value="${c}">${c} (${PUNTOS[c] >= 0 ? '+' : ''}${PUNTOS[c]})</option>`).join('');
+  const ptsClass = r.pts >= 0 ? 'pos' : 'neg';
+  const ptsStr = r.pts >= 0 ? `+${r.pts}` : `${r.pts}`;
+
+  const brow = document.createElement('tr');
+  brow.className = 'edit-row';
+  brow.innerHTML = `
+    <td colspan="5">
+      <div id="${panelId}">
+        <div class="edit-panel-header">Editar puntos — ${r.jugador}</div>
+        <div class="edit-items">${items || '<span style="color:var(--text-muted);font-size:12px;padding:4px 0;display:block">sin ítems</span>'}</div>
+        <div class="edit-add-row">
+          <select class="edit-add-select" onchange="onAddSelectChange('${jugadorKey}')">${addOptions}</select>
+          <select class="edit-div-select"></select>
+          <button class="btn-add-item" onclick="editItemAdd('${jugadorKey}')">+ Agregar</button>
+        </div>
+        <div class="edit-total">
+          <span class="et-label">Total</span>
+          <span class="et-val ${ptsClass}">${ptsStr}</span>
+        </div>
+      </div>
+    </td>`;
+  tr.parentNode.insertBefore(brow, tr.nextSibling);
+}
+
+function renderDuplicados() {
+  const tbody = document.getElementById('dup-body');
+  tbody.innerHTML = '';
+  allResults.filter(r => r.duplicado).forEach(r => {
+    const ptsClass = r.pts > 0 ? 'pts-positive' : r.pts < 0 ? 'pts-negative' : 'pts-zero';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="player-name">${r.jugador}</td>
+      <td>${r.divisiones.map(d => `<span class="tag tag-div">${d}</span>`).join('')}</td>
+      <td>${r.titular.map(d => `<span class="tag tag-titular">${d}</span>`).join('') || '—'}</td>
+      <td>${r.banco.map(d => `<span class="tag tag-banco">${d}</span>`).join('') || '—'}</td>
+      <td style="text-align:right" class="pts-cell ${ptsClass}">${r.pts > 0 ? '+' : ''}${r.pts}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderWarnings() {
+  const container = document.getElementById('warnings-list');
+  container.innerHTML = '';
+  const seen = new Set();
+  allWarnings.forEach(w => {
+    const key = w.jugador + w.tipo + (w.divTitular || '');
+    if (seen.has(key)) return;
+    seen.add(key);
+    const div = document.createElement('div');
+    div.className = 'warn-item';
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    if (w.tipo === 'cronologico') {
+      div.innerHTML = `${icon} <strong>${w.jugador}</strong>: titular en ${w.divTitular} pero ingresó desde el banco en ${w.divBanco} — verificar carga`;
+    } else {
+      div.innerHTML = `${icon} <strong>${w.jugador}</strong>: figura como titular en más de una división — se sumaron ambos resultados`;
+    }
+    container.appendChild(div);
+  });
+}
+
+function showPage(name, btn) {
+  ['ranking','duplicados','zorritos','agregar','reglamento'].forEach(p => {
+    document.getElementById('page-' + p).style.display = 'none';
+  });
+  document.getElementById('page-' + name).style.display = '';
+  document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  currentPage = name;
+  document.getElementById('filter-section').style.display = name === 'ranking' ? '' : 'none';
+
+  if (name === 'ranking') renderRanking();
+  if (name === 'agregar') {
+    const sel = document.getElementById('nuevo-division');
+    sel.innerHTML = divisionesDelCSV.map(d => `<option value="${d}">${d}</option>`).join('');
+    document.getElementById('nuevo-nombre').value = '';
+    document.getElementById('nuevo-resultado').value = '';
+    ['nuevo-try','nuevo-conversion','nuevo-penal','nuevo-drop',
+     'nuevo-trypenal','nuevo-zorrito','nuevo-amarilla','nuevo-roja'].forEach(id => {
+      document.getElementById(id).value = '0';
+    });
+    document.getElementById('nuevo-segunda-check').checked = false;
+    document.getElementById('segunda-div-row').style.display = 'none';
+    document.getElementById('agregar-error').style.display = 'none';
+    setTimeout(() => document.getElementById('nuevo-nombre').focus(), 50);
+  }
+}
+
+function renderZorritoGrid() {
+  const grid = document.getElementById('zorrito-grid');
+  grid.innerHTML = '';
+  divisionesDelCSV.forEach(div => {
+    const jugadoresDivision = allResults
+      .filter(r => r.divisiones.includes(div) && r.titular.includes(div))
+      .sort((a, b) => a.jugador.localeCompare(b.jugador));
+
+    const asignado = zorritos[div] || null;
+    const card = document.createElement('div');
+    card.className = 'zorrito-card' + (asignado ? ' assigned' : '');
+    card.id = 'zcard-' + div.replace(/\s/g,'_');
+
+    card.innerHTML = `
+      <div class="zc-div">
+        <span>${div}</span>
+        <span class="zc-star">⭐</span>
+      </div>
+      <div class="zc-assigned ${asignado ? '' : 'empty'}" id="zassigned-${div.replace(/\s/g,'_')}">
+        ${asignado || 'sin asignar'}
+      </div>
+      <div class="zorrito-search-wrap">
+        <input type="text" class="zorrito-search" placeholder="Buscar titular..."
+          id="zsearch-${div.replace(/\s/g,'_')}"
+          oninput="filterZorritoOptions('${div}')"
+          onfocus="openZorritoDropdown('${div}')"
+          autocomplete="off"
+        >
+        <div class="zorrito-dropdown" id="zdrop-${div.replace(/\s/g,'_')}">
+          ${jugadoresDivision.map(j => `
+            <div class="zorrito-option" onclick="selectZorrito('${div}','${j.jugador.replace(/'/g,"\\'")}')">
+              <span>${j.jugador}</span>
+              <span class="zo-pts">${j.pts > 0 ? '+' : ''}${j.pts} pts</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ${asignado ? `<button class="zorrito-clear" onclick="clearZorrito('${div}')">Quitar</button>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+  updateZorritoBar();
+}
+
+function openZorritoDropdown(div) {
+  const key = div.replace(/\s/g,'_');
+  document.getElementById('zdrop-' + key).classList.add('open');
+  document.addEventListener('click', function handler(e) {
+    const wrap = document.getElementById('zdrop-' + key);
+    if (wrap && !wrap.closest('.zorrito-search-wrap').contains(e.target)) {
+      wrap.classList.remove('open');
+      document.removeEventListener('click', handler);
+    }
+  });
+}
+
+function filterZorritoOptions(div) {
+  const key = div.replace(/\s/g,'_');
+  const q = (document.getElementById('zsearch-' + key).value || '').toLowerCase();
+  const drop = document.getElementById('zdrop-' + key);
+  drop.classList.add('open');
+  drop.querySelectorAll('.zorrito-option').forEach(opt => {
+    opt.style.display = opt.querySelector('span').textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function selectZorrito(div, jugador) {
+  zorritos[div] = jugador;
+  const key = div.replace(/\s/g,'_');
+  document.getElementById('zdrop-' + key).classList.remove('open');
+  renderZorritoGrid();
+}
+
+function clearZorrito(div) {
+  delete zorritos[div];
+  renderZorritoGrid();
+}
+
+function updateZorritoBar() {
+  const count = Object.keys(zorritos).length;
+  document.getElementById('zorrito-count').textContent = count;
+  document.getElementById('zorrito-bar').style.display = count > 0 ? '' : 'none';
+  const btn = document.getElementById('btn-apply-zorritos');
+  if (btn) btn.disabled = count === 0;
+}
+
+function applyZorritos() {
+  // Recalcular resultados aplicando zorritos manuales
+  // Un jugador puede ser zorrito manual en una división aunque no figure en el CSV
+  const zoritosSet = new Set(Object.values(zorritos));
+
+  allResults.forEach(r => {
+    // Quitar zorrito del CSV si fue sobreescrito manualmente
+    const eraZorritoCSV = r.zorrito;
+    const esZorritoManual = zoritosSet.has(r.jugador);
+
+    // Recalcular puntos desde breakdown (sin el zorrito viejo) y aplicar el nuevo
+    let pts = 0;
+    Object.entries(r.breakdown).forEach(([col, d]) => {
+      if (col !== 'Zorrito del Partido') pts += d.pts;
+    });
+    if (esZorritoManual) {
+      pts += 10;
+      r.breakdown['Zorrito del Partido'] = { sum: 1, pts: 10 };
+    } else {
+      delete r.breakdown['Zorrito del Partido'];
+    }
+    r.pts = pts;
+    r.zorrito = esZorritoManual;
+  });
+
+  allResults.sort((a, b) => b.pts - a.pts);
+  document.getElementById('s-zorr').textContent = Object.keys(zorritos).length;
+  renderRanking();
+  renderDuplicados();
+  // Ir al ranking si no estamos ya ahí
+  if (currentPage !== 'ranking') {
+    showPage('ranking', document.querySelector('.sidebar-nav button'));
+  }
+}
+
+function exportCSV() {
+  const bom = '\uFEFF';
+  const rows = allResults.map(r => `${r.jugador},"${r.divisiones.join(' / ')}",${r.pts}`).join('\n');
+  const blob = new Blob([bom + 'JUGADOR,DIVISIONES,PUNTOS\n' + rows], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'puntos_fecha.csv'; a.click();
+}
+
+function processFile(file) {
+  document.getElementById('file-name-label').textContent = file.name;
+  document.getElementById('file-status').classList.add('show');
+
+  const match = file.name.match(/[Ff]echa[_-]?(\d+)/);
+  document.getElementById('fecha-label').textContent = match ? `Fecha ${match[1]}` : file.name.replace('.csv','');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    rawRows = parseCSV(e.target.result);
+    const { results, warnings } = calcular(rawRows);
+    allResults = results; allWarnings = warnings;
+    zorritos = {};
+
+    document.getElementById('s-filas').textContent = rawRows.length;
+    document.getElementById('s-unicos').textContent = results.length;
+    document.getElementById('s-multi').textContent = results.filter(r => r.duplicado).length;
+    document.getElementById('s-zorr').textContent = results.filter(r => r.zorrito).length;
+    document.getElementById('stats-grid').style.display = '';
+
+    divisionesDelCSV = [...new Set(rawRows.map(r => r['DIVISION']).filter(Boolean))]
+      .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b));
+
+    const sel = document.getElementById('div-filter');
+    sel.innerHTML = '<option value="">Todas las divisiones</option>';
+    divisionesDelCSV.forEach(d => {
+      const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o);
+    });
+
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('filter-section').style.display = '';
+    renderWarnings();
+    renderRanking();
+    renderDuplicados();
+    renderZorritoGrid();
+    showPage('ranking', document.querySelector('.sidebar-nav button'));
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function toggleSegundaDiv() {
+  const checked = document.getElementById('nuevo-segunda-check').checked;
+  const row = document.getElementById('segunda-div-row');
+  row.style.display = checked ? 'grid' : 'none';
+  if (checked) {
+    const sel2 = document.getElementById('nuevo-division-2');
+    sel2.innerHTML = divisionesDelCSV.map(d => `<option value="${d}">${d}</option>`).join('');
+  }
+}
+
+function confirmarAgregarJugador() {
+  const nombreRaw = document.getElementById('nuevo-nombre').value.trim();
+  const nombre = nombreRaw.replace(/\b\w/g, c => c.toUpperCase());
+  const division = document.getElementById('nuevo-division').value;
+  const participacion = document.getElementById('nuevo-participacion').value;
+  const resultado = document.getElementById('nuevo-resultado').value;
+  const errDiv = document.getElementById('agregar-error');
+
+  if (!nombre) {
+    errDiv.textContent = 'Escribí el nombre del jugador.';
+    errDiv.style.display = '';
+    document.getElementById('nuevo-nombre').focus();
+    return;
+  }
+  if (allResults.find(r => r.jugador.toLowerCase() === nombre.toLowerCase())) {
+    errDiv.textContent = `"${nombre}" ya está en el ranking.`;
+    errDiv.style.display = '';
+    return;
+  }
+  errDiv.style.display = 'none';
+
+  const breakdown = {};
+  const participacionCol = participacion === 'titular' ? 'Titular' : 'Ingresó desde el banco';
+  breakdown[participacionCol] = { sum: 1, pts: PUNTOS[participacionCol] };
+  if (resultado) breakdown[resultado] = { sum: 1, pts: PUNTOS[resultado] };
+
+  // Segunda división
+  const tieneSegunda = document.getElementById('nuevo-segunda-check').checked;
+  const division2 = tieneSegunda ? document.getElementById('nuevo-division-2').value : null;
+  const participacion2 = tieneSegunda ? document.getElementById('nuevo-participacion-2').value : null;
+  const participacionCol2 = participacion2 === 'titular' ? 'Titular' : 'Ingresó desde el banco';
+  if (tieneSegunda && division2 && division2 !== division) {
+    // Sumar participación de segunda división al mismo ítem
+    if (breakdown[participacionCol2]) {
+      breakdown[participacionCol2].sum += 1;
+      breakdown[participacionCol2].pts += PUNTOS[participacionCol2];
+    } else {
+      breakdown[participacionCol2] = { sum: 1, pts: PUNTOS[participacionCol2] };
+    }
+  }
+
+  const accionesNuevas = [
+    { col: 'Try',                id: 'nuevo-try' },
+    { col: 'Conversión',         id: 'nuevo-conversion' },
+    { col: 'Penal',              id: 'nuevo-penal' },
+    { col: 'Drop',               id: 'nuevo-drop' },
+    { col: 'Try Penal',          id: 'nuevo-trypenal' },
+    { col: 'Zorrito del Partido',id: 'nuevo-zorrito' },
+    { col: 'Amarilla',           id: 'nuevo-amarilla' },
+    { col: 'Roja',               id: 'nuevo-roja' },
+  ];
+  accionesNuevas.forEach(({ col, id }) => {
+    const val = parseInt(document.getElementById(id).value) || 0;
+    if (val > 0) breakdown[col] = { sum: val, pts: val * PUNTOS[col] };
+  });
+
+  const titular = [];
+  const banco = [];
+  const participacionPorDiv = {};
+
+  if (participacion === 'titular') { titular.push(division); participacionPorDiv[division] = 'titular'; }
+  else { banco.push(division); participacionPorDiv[division] = 'banco'; }
+
+  if (tieneSegunda && division2 && division2 !== division) {
+    if (participacion2 === 'titular') { titular.push(division2); participacionPorDiv[division2] = 'titular'; }
+    else { banco.push(division2); participacionPorDiv[division2] = 'banco'; }
+  }
+
+  const divisiones = Object.keys(participacionPorDiv)
+    .sort((a,b) => DIV_ORDER.indexOf(a) - DIV_ORDER.indexOf(b));
+
+  const pts = Object.values(breakdown).reduce((acc, d) => acc + d.pts, 0);
+
+  allResults.push({
+    jugador: nombre,
+    divisiones,
+    divisionesActivas: [...divisiones],
+    participacionPorDiv,
+    titularDivision: titular[0] || null,
+    bancoDivisiones: banco,
+    duplicado: divisiones.length > 1,
+    titular, banco,
+    pts, breakdown,
+    zorrito: !!(breakdown['Zorrito del Partido']),
+  });
+
+  allResults.sort((a, b) => b.pts - a.pts);
+  document.getElementById('s-unicos').textContent = allResults.length;
+  document.getElementById('s-multi').textContent = allResults.filter(r => r.duplicado).length;
+  document.getElementById('s-zorr').textContent = allResults.filter(r => r.zorrito).length;
+  renderRanking();
+  renderDuplicados();
+  showPage('ranking', document.querySelector('.sidebar-nav button'));
+}
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+</script>
+</body>
+</html>
